@@ -1,12 +1,12 @@
 ---
 development:
   dialect: "sqlite3"
-  database: /home/riton/Sources/toutdoux_toutdoux_development.sqlite
+  database: /home/riton/Sources/toutdoux/toutdoux_development.sqlite
 
 test:
   dialect: "sqlite3"
-  database: /home/riton/Sources/toutdoux_toutdoux_test.sqlite
+  database: /home/riton/Sources/toutdoux/toutdoux_test.sqlite
 
 production:
   dialect: "sqlite3"
-  database: /home/riton/Sources/toutdoux_toutdoux_production.sqlite
+  database: /home/riton/Sources/toutdoux/toutdoux_production.sqlite
