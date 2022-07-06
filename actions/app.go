@@ -74,7 +74,7 @@ func App() *buffalo.App {
 		auth.GET("/", AuthLanding)
 		auth.GET("/new", AuthNew)
 		auth.POST("/new", AuthCreate)
-		auth.DELETE("/", AuthDestroy)
+		auth.GET("/logout", AuthDestroy)
 		auth.Middleware.Skip(Authorize, AuthLanding, AuthNew, AuthCreate)
 
 		//Routes for User registration
