@@ -43,7 +43,22 @@ func (t *TodoListLabel) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	var err error
 	return validate.Validate(
 		&validators.StringIsPresent{Field: t.Name, Name: "name"},
-		// check to see if the email address is already taken:
+		// check to see if the todoList really exists:
+		&validators.FuncValidator{
+			Field:   t.TodoListID.String(),
+			Name:    "todo_list_id",
+			Message: "%s list does not exist",
+			Fn: func() bool {
+				var b bool
+				todoList := &TodoList{}
+				b, err := tx.Where("todo_list_id = ?", t.TodoListID).Exists(todoList)
+				if err != nil {
+					return false
+				}
+				return b
+			},
+		},
+		// check to see if the name is already taken:
 		&validators.FuncValidator{
 			Field:   t.Name,
 			Name:    "name",
