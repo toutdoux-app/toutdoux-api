@@ -87,6 +87,8 @@ func App() *buffalo.App {
 		api := app.Group("/api")
 		api.GET("/health", APIHealthHandler)
 		api.GET("/list/{listID}", APIGetListByID)
+		api.GET("/list", APIListsAll)
+		api.POST("/list", APIListCreate)
 		api.Middleware.Skip(Authorize, APIHealthHandler)
 
 		app.ServeFiles("/", http.FS(public.FS())) // serve files from the public directory

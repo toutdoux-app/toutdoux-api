@@ -52,3 +52,46 @@ func APIGetListByID(c buffalo.Context) error {
 
 	return nil
 }
+
+type APIListCreateRequest struct {
+	Name string `json:"name" form:"name"`
+}
+
+func APIListCreate(c buffalo.Context) error {
+	request := &APIListCreateRequest{}
+	if err := c.Bind(request); err != nil {
+		return c.Error(http.StatusBadRequest, fmt.Errorf(""))
+	}
+
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
+
+	// See https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/common-patterns/creating-new-records.html
+	todoList := &models.TodoList{
+		Name:   strings.TrimSpace(strings.ToLower(request.Name)),
+		UserID: userID,
+	}
+
+	tx := c.Value("tx").(*pop.Connection)
+
+	_, err := tx.ValidateAndCreate(todoList)
+	if err != nil {
+		return c.Error(http.StatusInternalServerError, fmt.Errorf(""))
+	}
+
+	return c.Redirect(http.StatusFound, "/api/list/"+todoList.ID.String())
+}
+
+func APIListsAll(c buffalo.Context) error {
+	tx := c.Value("tx").(*pop.Connection)
+
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
+
+	// https://andrew-sledge.gitbooks.io/the-unofficial-pop-book/content/common-patterns/querying-for-several-records.html
+	lists := &models.TodoLists{}
+	err := tx.Select("id", "name", "created_at", "updated_at", "user_id").Where("user_id = ?", userID.String()).All(lists)
+	if err != nil {
+		return c.Error(http.StatusInternalServerError, fmt.Errorf(""))
+	}
+
+	return c.Render(http.StatusOK, r.JSON(lists))
+}

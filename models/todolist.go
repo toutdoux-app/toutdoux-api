@@ -17,11 +17,11 @@ type TodoList struct {
 
 	Name string `json:"name" db:"name"`
 
-	User   User      `belongs_to:"user"`
-	UserID uuid.UUID `db:"user_id"`
+	User   User      `belongs_to:"user" json:"-"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
 
-	TodoEntries TodoEntries    `has_many:"todo_entries" order_by:"priority updated_at asc"`
-	Labels      TodoListLabels `has_many:"todo_list_labels" order_by:"name asc"`
+	TodoEntries TodoEntries    `has_many:"todo_entries" order_by:"priority updated_at asc" json:"entries,omitempty"`
+	Labels      TodoListLabels `has_many:"todo_list_labels" order_by:"name asc" json:"labels,omitempty"`
 }
 
 // String is not required by pop and may be deleted
