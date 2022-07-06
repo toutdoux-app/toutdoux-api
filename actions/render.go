@@ -1,6 +1,11 @@
 package actions
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"strconv"
+	"strings"
+
 	"github.com/riton/toutdoux/public"
 	"github.com/riton/toutdoux/templates"
 
@@ -26,6 +31,12 @@ func init() {
 			// below and import "github.com/gobuffalo/helpers/forms"
 			// forms.FormKey:     forms.Form,
 			// forms.FormForKey:  forms.FormFor,
+			"gravatarURL": gravatarURL,
 		},
 	})
+}
+
+func gravatarURL(email string, size int) string {
+	cksum := md5.Sum([]byte(strings.ToLower(email)))
+	return "https://www.gravatar.com/avatar/" + hex.EncodeToString(cksum[:]) + "s=" + strconv.Itoa(size)
 }
