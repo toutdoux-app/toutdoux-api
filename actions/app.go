@@ -83,6 +83,9 @@ func App() *buffalo.App {
 		users.POST("/", UsersCreate)
 		users.Middleware.Remove(Authorize)
 
+		//Routes for the REST API
+		//api := app.Group("/api")
+
 		app.ServeFiles("/", http.FS(public.FS())) // serve files from the public directory
 	}
 

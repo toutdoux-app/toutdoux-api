@@ -9,3 +9,37 @@ CREATE TABLE IF NOT EXISTS "users" (
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL
 );
+CREATE TABLE IF NOT EXISTS "todo_lists" (
+"id" TEXT PRIMARY KEY,
+"name" TEXT NOT NULL,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"user_id" char(36) NOT NULL,
+FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE cascade
+);
+CREATE TABLE IF NOT EXISTS "todo_entries" (
+"id" TEXT PRIMARY KEY,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"title" TEXT NOT NULL,
+"priority" INTEGER NOT NULL,
+"todo_list_id" char(36) NOT NULL,
+FOREIGN KEY (todo_list_id) REFERENCES todo_lists (id) ON DELETE cascade
+);
+CREATE TABLE IF NOT EXISTS "todo_list_labels" (
+"id" TEXT PRIMARY KEY,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"name" TEXT NOT NULL,
+"todo_list_id" char(36) NOT NULL,
+FOREIGN KEY (todo_list_id) REFERENCES todo_lists (id) ON DELETE cascade
+);
+CREATE TABLE IF NOT EXISTS "todo_entry_labels" (
+"id" TEXT PRIMARY KEY,
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"todo_entry_id" char(36) NOT NULL,
+"todo_list_label_id" char(36) NOT NULL,
+FOREIGN KEY (todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
+FOREIGN KEY (todo_list_label_id) REFERENCES todo_list_labels (id) ON DELETE cascade
+);

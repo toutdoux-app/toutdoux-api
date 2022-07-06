@@ -1,0 +1,20 @@
+create_table("todo_list_labels") {
+	t.Column("id", "uuid", {primary: true})
+	t.Timestamps()
+	
+	t.Column("name", "string", {})
+
+	t.Column("todo_list_id", "uuid", {})
+	t.ForeignKey("todo_list_id", {"todo_lists": ["id"]}, {"on_delete": "cascade"})
+}
+
+create_table("todo_entry_labels") {
+	t.Column("id", "uuid", {primary: true})
+	t.Timestamps()
+
+	t.Column("todo_entry_id", "uuid", {})
+	t.ForeignKey("todo_entry_id", {"todo_entries": ["id"]}, {"on_delete": "cascade"})
+
+	t.Column("todo_list_label_id", "uuid", {})
+	t.ForeignKey("todo_list_label_id", {"todo_list_labels": ["id"]}, {"on_delete": "cascade"})
+}

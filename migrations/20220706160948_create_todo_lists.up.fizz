@@ -1,0 +1,7 @@
+create_table("todo_lists") {
+	t.Column("id", "uuid", {primary: true})
+	t.Column("name", "string", {})
+	t.Timestamps()
+	t.Column("user_id", "uuid", {})
+	t.ForeignKey("user_id", {"users": ["id"]}, {"on_delete": "cascade"})
+}
