@@ -6,6 +6,7 @@ import (
 
 	"github.com/gobuffalo/pop/v6"
 	"github.com/gobuffalo/validate/v3"
+	"github.com/gobuffalo/validate/v3/validators"
 	"github.com/gofrs/uuid"
 )
 
@@ -17,8 +18,8 @@ type TodoListLabel struct {
 
 	Name string `json:"name" db:"name"`
 
-	TodoList   TodoList `belongs_to:"todo_list"`
-	TodoListID uuid.UUID
+	TodoList   TodoList  `belongs_to:"todo_list"`
+	TodoListID uuid.UUID `json:"todo_list_id" db:"todo_list_id"`
 }
 
 // String is not required by pop and may be deleted
@@ -39,7 +40,25 @@ func (t TodoListLabels) String() string {
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (t *TodoListLabel) Validate(tx *pop.Connection) (*validate.Errors, error) {
-	return validate.NewErrors(), nil
+	var err error
+	return validate.Validate(
+		&validators.StringIsPresent{Field: t.Name, Name: "name"},
+		// check to see if the email address is already taken:
+		&validators.FuncValidator{
+			Field:   t.Name,
+			Name:    "name",
+			Message: "%s is already taken",
+			Fn: func() bool {
+				var b bool
+				q := tx.Where("name = ? AND todo_list_id = ?", t.Name, t.TodoListID)
+				b, err = q.Exists(t)
+				if err != nil {
+					return false
+				}
+				return !b
+			},
+		},
+	), err
 }
 
 // ValidateCreate gets run every time you call "pop.ValidateAndCreate" method.

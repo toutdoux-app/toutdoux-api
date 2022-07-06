@@ -50,7 +50,7 @@ func APIGetListByID(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	return nil
+	return c.Render(http.StatusOK, r.JSON(todoList))
 }
 
 type APIListCreateRequest struct {
@@ -94,4 +94,59 @@ func APIListsAll(c buffalo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, r.JSON(lists))
+}
+
+type APIListLabelCreateRequest struct {
+	Name string `json:"name" form:"name"`
+}
+
+func APIListLabelCreate(c buffalo.Context) error {
+	request := &APIListLabelCreateRequest{}
+	if err := c.Bind(request); err != nil {
+		return c.Error(http.StatusBadRequest, fmt.Errorf(""))
+	}
+
+	listID := c.Param("listID")
+	if listID == "" {
+		return c.Render(http.StatusBadRequest, r.String(""))
+	}
+
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
+	tx := c.Value("tx").(*pop.Connection)
+
+	list := &models.TodoList{}
+	exists, err := tx.Where("id = ? AND user_id = ?", listID, userID).Exists(list)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if !exists {
+		response := make(map[string]interface{})
+		response["error"] = fmt.Sprintf("no such todoList %s", listID)
+		response["success"] = false
+
+		return c.Render(http.StatusOK, r.JSON(response))
+	}
+
+	listUUID, _ := uuid.FromString(listID)
+
+	label := &models.TodoListLabel{
+		Name:       request.Name,
+		TodoListID: listUUID,
+	}
+
+	vErr, err := tx.ValidateAndCreate(label)
+	if err != nil {
+		return c.Error(http.StatusInternalServerError, fmt.Errorf(""))
+	}
+
+	fmt.Printf("LABEL = %+v\n", label)
+
+	if vErr != nil {
+		fmt.Printf("ERRORS: %+v\n", vErr.Errors)
+	}
+
+	fmt.Printf("err = %+v\n", err)
+
+	return err
 }
