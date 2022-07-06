@@ -17,8 +17,8 @@ type TodoList struct {
 
 	Name string `json:"name" db:"name"`
 
-	User   User `belongs_to:"user"`
-	UserID uuid.UUID
+	User   User      `belongs_to:"user"`
+	UserID uuid.UUID `db:"user_id"`
 
 	TodoEntries TodoEntries    `has_many:"todo_entries" order_by:"priority updated_at asc"`
 	Labels      TodoListLabels `has_many:"todo_list_labels" order_by:"name asc"`

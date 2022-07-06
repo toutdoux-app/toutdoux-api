@@ -84,7 +84,10 @@ func App() *buffalo.App {
 		users.Middleware.Remove(Authorize)
 
 		//Routes for the REST API
-		//api := app.Group("/api")
+		api := app.Group("/api")
+		api.GET("/health", APIHealthHandler)
+		api.GET("/list/{listID}", APIGetListByID)
+		api.Middleware.Skip(Authorize, APIHealthHandler)
 
 		app.ServeFiles("/", http.FS(public.FS())) // serve files from the public directory
 	}

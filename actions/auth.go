@@ -21,6 +21,9 @@ func AuthLanding(c buffalo.Context) error {
 // AuthNew loads the signin page
 func AuthNew(c buffalo.Context) error {
 	c.Set("user", models.User{})
+	// make CSRF token accessible to clients talking directly to the API
+	csrfToken := c.Data()["authenticity_token"].(string)
+	c.Response().Header().Add("X-CSRF-Token", csrfToken)
 	return c.Render(200, r.HTML("auth/new.plush.html"))
 }
 
@@ -48,7 +51,7 @@ func AuthCreate(c buffalo.Context) error {
 	}
 
 	if err != nil {
-		if errors.Cause(err) == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			// couldn't find an user with the supplied email address.
 			return bad()
 		}
