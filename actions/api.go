@@ -125,10 +125,17 @@ func APIListLabelCreate(c buffalo.Context) error {
 		response["error"] = fmt.Sprintf("no such todoList %s", listID)
 		response["success"] = false
 
-		return c.Render(http.StatusOK, r.JSON(response))
+		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
 
-	listUUID, _ := uuid.FromString(listID)
+	listUUID, err := uuid.FromString(listID)
+	if err != nil {
+		response := make(map[string]interface{})
+		response["error"] = "invalid list identifiers"
+		response["success"] = false
+
+		return c.Render(http.StatusBadRequest, r.JSON(response))
+	}
 
 	label := &models.TodoListLabel{
 		Name:       request.Name,
@@ -137,16 +144,22 @@ func APIListLabelCreate(c buffalo.Context) error {
 
 	vErr, err := tx.ValidateAndCreate(label)
 	if err != nil {
+		c.Logger().Error(err)
 		return c.Error(http.StatusInternalServerError, fmt.Errorf(""))
 	}
 
-	fmt.Printf("LABEL = %+v\n", label)
+	if len(vErr.Errors) > 0 {
+		response := make(map[string]interface{})
+		response["error"] = "invalid values"
+		response["detail"] = vErr.Errors
+		response["success"] = false
 
-	if vErr != nil {
-		fmt.Printf("ERRORS: %+v\n", vErr.Errors)
+		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
 
-	fmt.Printf("err = %+v\n", err)
+	response := make(map[string]interface{})
+	response["success"] = true
+	response["label"] = label
 
-	return err
+	return c.Render(http.StatusOK, r.JSON(response))
 }

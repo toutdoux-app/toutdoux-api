@@ -18,7 +18,7 @@ type TodoListLabel struct {
 
 	Name string `json:"name" db:"name"`
 
-	TodoList   TodoList  `belongs_to:"todo_list"`
+	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
 	TodoListID uuid.UUID `json:"todo_list_id" db:"todo_list_id"`
 }
 
