@@ -16,12 +16,12 @@ type TodoEntry struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 
 	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
-	TodoListID uuid.UUID `db:"todo_list_id"`
+	TodoListID uuid.UUID `db:"todo_list_id" json:"-"`
 
 	Title    string         `json:"title" db:"title"`
 	Priority int            `json:"priority" db:"priority"`
 	Done     bool           `json:"done" db:"done"`
-	Labels   TodoListLabels `many_to_many:"todo_entry_labels"`
+	Labels   TodoListLabels `many_to_many:"todo_entry_labels" json:"labels"`
 }
 
 // String is not required by pop and may be deleted

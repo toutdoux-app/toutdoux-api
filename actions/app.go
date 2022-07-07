@@ -88,6 +88,7 @@ func App() *buffalo.App {
 		api.GET("/health", APIHealthHandler)
 		api.POST("/list/{listID}/label", SetTodoListMiddleware(APIListLabelCreate, "listID"))
 		api.GET("/list/{listID}/todo", SetTodoListMiddleware(APITodoListEntriesList, "listID"))
+		api.POST("/list/{listID}/todo", SetTodoListMiddleware(APITodoListEntriesCreate, "listID"))
 		api.GET("/list/{listID}", SetTodoListMiddleware(APIGetListByID, "listID"))
 		api.GET("/list", APIListsAll)
 		api.POST("/list", APIListCreate)

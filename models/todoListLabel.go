@@ -14,13 +14,13 @@ import (
 // TodoListLabel is used by pop to map your todo_list_labels database table to your go code.
 type TodoListLabel struct {
 	ID        uuid.UUID `json:"id" db:"id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time `json:"-" db:"created_at"`
+	UpdatedAt time.Time `json:"-" db:"updated_at"`
 
 	Name string `json:"name" db:"name"`
 
 	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
-	TodoListID uuid.UUID `json:"todo_list_id" db:"todo_list_id"`
+	TodoListID uuid.UUID `json:"-" db:"todo_list_id"`
 
 	// userID is used to ensure that the todo_list_id
 	// exists AND belong to the user in the Validate() method

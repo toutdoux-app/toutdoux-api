@@ -3,6 +3,7 @@ module github.com/riton/toutdoux
 go 1.18
 
 require (
+	github.com/elliotchance/pie/v2 v2.0.1
 	github.com/gobuffalo/buffalo v0.18.7
 	github.com/gobuffalo/buffalo-pop/v3 v3.0.4
 	github.com/gobuffalo/envy v1.10.1
@@ -82,6 +83,7 @@ require (
 	github.com/spf13/cobra v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
+	golang.org/x/exp v0.0.0-20220321173239-a90fa8a75705 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect

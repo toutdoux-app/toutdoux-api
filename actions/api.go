@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/elliotchance/pie/v2"
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop/v6"
 	"github.com/gofrs/uuid"
@@ -135,4 +136,117 @@ func APITodoListEntriesList(c buffalo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, r.JSON(todoEntries))
+}
+
+type APITodoListEntriesCreateRequest struct {
+	Priority int    `form:"priority"`
+	Title    string `form:"title"`
+	Labels   string `form:"labels"`
+}
+
+func (a APITodoListEntriesCreateRequest) Validate() error {
+	if a.Priority < 0 {
+		return fmt.Errorf("priority MUST be positive integer")
+	}
+
+	if a.Title == "" {
+		return fmt.Errorf("title can't be empty")
+	}
+
+	return nil
+}
+
+func (a APITodoListEntriesCreateRequest) GetLabels() []string {
+	labels := strings.Split(strings.TrimSpace(a.Labels), ",")
+	return pie.Unique(labels)
+}
+
+func APITodoListEntriesCreate(c buffalo.Context) error {
+	var request APITodoListEntriesCreateRequest
+	if err := c.Bind(&request); err != nil {
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = "fail to process arguments"
+		return c.Render(http.StatusBadRequest, r.JSON(response))
+	}
+
+	if err := request.Validate(); err != nil {
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = err.Error()
+		return c.Render(http.StatusBadRequest, r.JSON(response))
+	}
+
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
+	todoList := c.Value("todo_list").(*models.TodoList)
+	tx := c.Value("tx").(*pop.Connection)
+
+	// TodoList labels will be created "on the fly" if it does not exist
+	var todoListLabels models.TodoListLabels
+	for _, label := range request.GetLabels() {
+		var shouldCreateLabel bool
+		todoListLabel := &models.TodoListLabel{}
+
+		err := tx.Where("name = ? AND todo_list_id = ?", label, todoList.ID).First(todoListLabel)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				shouldCreateLabel = true
+			} else {
+				response := make(map[string]interface{})
+				response["success"] = false
+				response["error"] = fmt.Sprintf("fail to query for label %q", label)
+				return c.Render(http.StatusInternalServerError, r.JSON(response))
+			}
+		}
+
+		if shouldCreateLabel {
+			todoListLabel = &models.TodoListLabel{
+				Name:       label,
+				TodoListID: todoList.ID,
+			}
+			todoListLabel.SetUserID(userID)
+
+			vErr, err := tx.ValidateAndCreate(todoListLabel)
+			if err != nil {
+				response := make(map[string]interface{})
+				response["success"] = false
+				response["error"] = fmt.Sprintf("fail to create label %q", label)
+				return c.Render(http.StatusInternalServerError, r.JSON(response))
+			}
+
+			if len(vErr.Errors) > 0 {
+				response := make(map[string]interface{})
+				response["error"] = fmt.Sprintf("invalid values when creating label %q", label)
+				response["detail"] = vErr.Errors
+				response["success"] = false
+
+				return c.Render(http.StatusBadRequest, r.JSON(response))
+			}
+		}
+
+		todoListLabels = append(todoListLabels, *todoListLabel)
+	}
+
+	todoListEntry := &models.TodoEntry{
+		Title:      request.Title,
+		TodoListID: todoList.ID,
+		Labels:     todoListLabels,
+		Done:       false,
+		Priority:   request.Priority,
+	}
+
+	if err := tx.Create(todoListEntry); err != nil {
+		c.Logger().WithFields(map[string]interface{}{
+			"error":      err,
+			"request_id": c.Value("request_id"),
+			"user_id":    userID.String(),
+		}).Error("fail to create todo list entry")
+
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = "fail to create todo list entry"
+		return c.Render(http.StatusInternalServerError, r.JSON(response))
+	}
+
+	return c.Render(http.StatusOK, r.JSON(todoListEntry))
 }
