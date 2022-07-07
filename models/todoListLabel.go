@@ -51,7 +51,7 @@ func (t *TodoListLabel) Validate(tx *pop.Connection) (*validate.Errors, error) {
 			Fn: func() bool {
 				var b bool
 				todoList := &TodoList{}
-				b, err := tx.Where("todo_list_id = ?", t.TodoListID).Exists(todoList)
+				b, err := tx.Where("id = ?", t.TodoListID).Exists(todoList)
 				if err != nil {
 					return false
 				}
