@@ -3,6 +3,7 @@ create_table("todo_entries") {
 	t.Timestamps()
 	t.Column("title", "string", {})
 	t.Column("priority", "integer", {})
+	t.Column("done", "bool", {"default": false})
 	
 	t.Column("todo_list_id", "uuid", {})
 	t.ForeignKey("todo_list_id", {"todo_lists": ["id"]}, {"on_delete": "cascade"})

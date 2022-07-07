@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS "todo_entries" (
 "updated_at" DATETIME NOT NULL,
 "title" TEXT NOT NULL,
 "priority" INTEGER NOT NULL,
+"done" bool NOT NULL DEFAULT 'false',
 "todo_list_id" char(36) NOT NULL,
 FOREIGN KEY (todo_list_id) REFERENCES todo_lists (id) ON DELETE cascade
 );

@@ -20,6 +20,7 @@ type TodoEntry struct {
 
 	Title    string         `json:"title" db:"title"`
 	Priority int            `json:"priority" db:"priority"`
+	Done     bool           `json:"done" db:"done"`
 	Labels   TodoListLabels `many_to_many:"todo_entry_labels"`
 }
 
