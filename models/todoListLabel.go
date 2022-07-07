@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/gobuffalo/pop/v6"
@@ -20,6 +21,10 @@ type TodoListLabel struct {
 
 	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
 	TodoListID uuid.UUID `json:"todo_list_id" db:"todo_list_id"`
+
+	// userID is used to ensure that the todo_list_id
+	// exists AND belong to the user in the Validate() method
+	userID uuid.UUID `db:"-"`
 }
 
 // String is not required by pop and may be deleted
@@ -37,13 +42,22 @@ func (t TodoListLabels) String() string {
 	return string(jt)
 }
 
+func (t *TodoListLabel) SetUserID(userID uuid.UUID) {
+	t.userID = userID
+}
+
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (t *TodoListLabel) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	var err error
+
+	if t.userID == uuid.Nil {
+		return nil, fmt.Errorf("no userID available in TodoListLabel Validate")
+	}
+
 	return validate.Validate(
 		&validators.StringIsPresent{Field: t.Name, Name: "name"},
-		// check to see if the todoList really exists:
+		// check to see if the todoList really exists and belongs to the user:
 		&validators.FuncValidator{
 			Field:   t.TodoListID.String(),
 			Name:    "todo_list_id",
@@ -51,7 +65,7 @@ func (t *TodoListLabel) Validate(tx *pop.Connection) (*validate.Errors, error) {
 			Fn: func() bool {
 				var b bool
 				todoList := &TodoList{}
-				b, err := tx.Where("id = ?", t.TodoListID).Exists(todoList)
+				b, err := tx.Where("id = ? AND user_id = ?", t.TodoListID, t.userID).Exists(todoList)
 				if err != nil {
 					return false
 				}

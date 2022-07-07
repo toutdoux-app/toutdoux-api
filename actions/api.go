@@ -114,25 +114,17 @@ func APIListLabelCreate(c buffalo.Context) error {
 	userID := c.Session().Get("current_user_id").(uuid.UUID)
 	tx := c.Value("tx").(*pop.Connection)
 
-	list := &models.TodoList{}
-	exists, err := tx.Where("id = ? AND user_id = ?", listID, userID).Exists(list)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	if !exists {
-		response := make(map[string]interface{})
-		response["error"] = fmt.Sprintf("no such todoList %s", listID)
-		response["success"] = false
-
-		return c.Render(http.StatusBadRequest, r.JSON(response))
-	}
-
 	listUUID, err := uuid.FromString(listID)
 	if err != nil {
 		response := make(map[string]interface{})
-		response["error"] = "invalid list identifiers"
+		response["error"] = "invalid todo_list identifier"
 		response["success"] = false
+
+		c.Logger().WithFields(map[string]interface{}{
+			"error":      err,
+			"listID":     listID,
+			"request_id": c.Value("request_id"),
+		}).Warn("invalid todo_list identifier")
 
 		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
@@ -141,6 +133,7 @@ func APIListLabelCreate(c buffalo.Context) error {
 		Name:       request.Name,
 		TodoListID: listUUID,
 	}
+	label.SetUserID(userID)
 
 	vErr, err := tx.ValidateAndCreate(label)
 	if err != nil {
