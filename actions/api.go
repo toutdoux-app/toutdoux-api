@@ -23,33 +23,7 @@ func APIHealthHandler(c buffalo.Context) error {
 }
 
 func APIGetListByID(c buffalo.Context) error {
-	listID := c.Param("listID")
-	if listID == "" {
-		return c.Render(http.StatusBadRequest, r.String(""))
-	}
-
-	userID := c.Session().Get("current_user_id").(uuid.UUID)
-
-	todoList := &models.TodoList{}
-	tx := c.Value("tx").(*pop.Connection)
-
-	err := tx.Where(
-		"id = ? AND user_id = ?",
-		strings.ToLower(strings.TrimSpace(listID)),
-		userID.String(),
-	).First(todoList)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			// couldn't find document
-			response := make(map[string]interface{})
-			response["error"] = fmt.Sprintf("no such todoList %s", listID)
-			response["success"] = false
-
-			return c.Render(http.StatusOK, r.JSON(response))
-		}
-		return errors.WithStack(err)
-	}
-
+	todoList := c.Value("todo_list").(*models.TodoList)
 	return c.Render(http.StatusOK, r.JSON(todoList))
 }
 
@@ -106,33 +80,15 @@ func APIListLabelCreate(c buffalo.Context) error {
 		return c.Error(http.StatusBadRequest, fmt.Errorf(""))
 	}
 
-	listID := c.Param("listID")
-	if listID == "" {
-		return c.Render(http.StatusBadRequest, r.String(""))
-	}
-
-	userID := c.Session().Get("current_user_id").(uuid.UUID)
+	todoList := c.Value("todo_list").(*models.TodoList)
 	tx := c.Value("tx").(*pop.Connection)
-
-	listUUID, err := uuid.FromString(listID)
-	if err != nil {
-		response := make(map[string]interface{})
-		response["error"] = "invalid todo_list identifier"
-		response["success"] = false
-
-		c.Logger().WithFields(map[string]interface{}{
-			"error":      err,
-			"listID":     listID,
-			"request_id": c.Value("request_id"),
-		}).Warn("invalid todo_list identifier")
-
-		return c.Render(http.StatusBadRequest, r.JSON(response))
-	}
 
 	label := &models.TodoListLabel{
 		Name:       request.Name,
-		TodoListID: listUUID,
+		TodoListID: todoList.ID,
 	}
+
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
 	label.SetUserID(userID)
 
 	vErr, err := tx.ValidateAndCreate(label)
@@ -155,4 +111,28 @@ func APIListLabelCreate(c buffalo.Context) error {
 	response["label"] = label
 
 	return c.Render(http.StatusOK, r.JSON(response))
+}
+
+func APITodoListEntriesList(c buffalo.Context) error {
+	todoList := c.Value("todo_list").(*models.TodoList)
+	tx := c.Value("tx").(*pop.Connection)
+
+	q := tx.Where("todo_list_id = ?", todoList.ID)
+	if doneParam := c.Param("done"); doneParam != "" {
+		if doneParam == "true" || doneParam == "false" {
+			q.Where("done = " + doneParam)
+		}
+	}
+
+	todoEntries := &models.TodoEntries{}
+	err := q.All(todoEntries)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			response := make(map[string]interface{})
+			response["success"] = false
+			return c.Render(http.StatusInternalServerError, r.JSON(response))
+		}
+	}
+
+	return c.Render(http.StatusOK, r.JSON(todoEntries))
 }

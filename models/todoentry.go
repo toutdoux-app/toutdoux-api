@@ -15,8 +15,8 @@ type TodoEntry struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 
-	TodoList   TodoList `belongs_to:"todo_list"`
-	TodoListID uuid.UUID
+	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
+	TodoListID uuid.UUID `db:"todo_list_id"`
 
 	Title    string         `json:"title" db:"title"`
 	Priority int            `json:"priority" db:"priority"`

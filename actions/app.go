@@ -86,8 +86,9 @@ func App() *buffalo.App {
 		//Routes for the REST API
 		api := app.Group("/api")
 		api.GET("/health", APIHealthHandler)
-		api.POST("/list/{listID}/label", APIListLabelCreate)
-		api.GET("/list/{listID}", APIGetListByID)
+		api.POST("/list/{listID}/label", SetTodoListMiddleware(APIListLabelCreate, "listID"))
+		api.GET("/list/{listID}/todo", SetTodoListMiddleware(APITodoListEntriesList, "listID"))
+		api.GET("/list/{listID}", SetTodoListMiddleware(APIGetListByID, "listID"))
 		api.GET("/list", APIListsAll)
 		api.POST("/list", APIListCreate)
 		api.Middleware.Skip(Authorize, APIHealthHandler)
