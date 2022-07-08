@@ -9,52 +9,48 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// TodoEntry is used by pop to map your todo_entries database table to your go code.
-type TodoEntry struct {
-	ID        uuid.UUID `json:"id" db:"id"`
+// TodoEntryRelation is used by pop to map your todo_entry_relations database table to your go code.
+type TodoEntryRelation struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 
-	TodoList   TodoList  `belongs_to:"todo_list" json:"-"`
-	TodoListID uuid.UUID `db:"todo_list_id" json:"-"`
+	TodoEntry            TodoEntry `belongs_to:"todo_entry"`
+	TodoEntryID          uuid.UUID `json:"todo_entry_id"`
+	RelatedToTodoEntry   TodoEntry `belongs_to:"todo_entry"`
+	RelatedToTodoEntryID uuid.UUID `json:"related_to_todo_entry_id"`
 
-	Title    string         `json:"title" db:"title"`
-	Priority int            `json:"priority" db:"priority"`
-	Done     bool           `json:"done" db:"done"`
-	Labels   TodoListLabels `many_to_many:"todo_entry_labels" json:"labels"`
-
-	Relations TodoEntryRelations `many_to_many:"todo_entry_relations" json:"relations"`
+	RelationType string `db:"relation_type" json:"relation_type"`
 }
 
 // String is not required by pop and may be deleted
-func (t TodoEntry) String() string {
+func (t TodoEntryRelation) String() string {
 	jt, _ := json.Marshal(t)
 	return string(jt)
 }
 
-// TodoEntries is not required by pop and may be deleted
-type TodoEntries []TodoEntry
+// TodoEntryRelations is not required by pop and may be deleted
+type TodoEntryRelations []TodoEntryRelation
 
 // String is not required by pop and may be deleted
-func (t TodoEntries) String() string {
+func (t TodoEntryRelations) String() string {
 	jt, _ := json.Marshal(t)
 	return string(jt)
 }
 
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
-func (t *TodoEntry) Validate(tx *pop.Connection) (*validate.Errors, error) {
+func (t *TodoEntryRelation) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }
 
 // ValidateCreate gets run every time you call "pop.ValidateAndCreate" method.
 // This method is not required and may be deleted.
-func (t *TodoEntry) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
+func (t *TodoEntryRelation) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }
 
 // ValidateUpdate gets run every time you call "pop.ValidateAndUpdate" method.
 // This method is not required and may be deleted.
-func (t *TodoEntry) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
+func (t *TodoEntryRelation) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
 }

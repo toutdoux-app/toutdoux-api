@@ -44,3 +44,13 @@ CREATE TABLE IF NOT EXISTS "todo_entry_labels" (
 FOREIGN KEY (todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
 FOREIGN KEY (todo_list_label_id) REFERENCES todo_list_labels (id) ON DELETE cascade
 );
+CREATE TABLE IF NOT EXISTS "todo_entry_relations" (
+"created_at" DATETIME NOT NULL,
+"updated_at" DATETIME NOT NULL,
+"relation_type" TEXT NOT NULL,
+"todo_entry_id" char(36) NOT NULL,
+"related_to_todo_entry_id" char(36) NOT NULL,
+FOREIGN KEY (todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
+FOREIGN KEY (related_to_todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
+PRIMARY KEY("todo_entry_id", "related_to_todo_entry_id")
+);
