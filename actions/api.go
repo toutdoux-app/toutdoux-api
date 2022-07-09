@@ -298,8 +298,17 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
 
-	if err := tx.EagerPreload().Find(todoListEntry, todoListEntry.ID); err != nil {
-		return c.Render(http.StatusInternalServerError, r.String(err.Error()))
+	if err := tx.EagerPreload().Find(&models.TodoEntry{}, todoListEntry.ID); err != nil {
+		c.Logger().WithFields(map[string]interface{}{
+			"error":      err,
+			"request_id": c.Value("request_id"),
+			"user_id":    userID.String(),
+		}).Error("fail to load todo list entry relations")
+
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = "fail to load todo list entry relations"
+		return c.Render(http.StatusInternalServerError, r.JSON(response))
 	}
 
 	return c.Render(http.StatusOK, r.JSON(todoListEntry))

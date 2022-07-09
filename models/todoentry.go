@@ -25,9 +25,9 @@ type TodoEntry struct {
 	Priority int            `json:"priority" db:"priority"`
 	DueDate  *time.Time     `json:"due_date,omitempty" db:"due_date"`
 	Done     bool           `json:"done" db:"done"`
-	Labels   TodoListLabels `many_to_many:"todo_entry_labels" json:"labels,omitempty"`
+	Labels   TodoListLabels `many_to_many:"todo_entry_labels" db:"-" json:"labels,omitempty"`
 
-	Relations TodoEntryRelations `many_to_many:"todo_entry_relations" json:"relations,omitempty"`
+	Relations TodoEntryRelations `many_to_many:"todo_entry_relations" db:"-" json:"relations,omitempty"`
 }
 
 // String is not required by pop and may be deleted

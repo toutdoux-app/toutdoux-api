@@ -17,8 +17,8 @@ type TodoEntryLabel struct {
 
 	TodoEntryID uuid.UUID     `json:"todo_entry_id" db:"todo_entry_id"`
 	LabelID     uuid.UUID     `json:"todo_list_label_id" db:"todo_list_label_id"`
-	TodoEntry   TodoEntry     `belongs_to:"todo_entries"`
-	Label       TodoListLabel `belongs_to:"todo_list_labels"`
+	TodoEntry   TodoEntry     `belongs_to:"todo_entries" db:"-"`
+	Label       TodoListLabel `belongs_to:"todo_list_labels" db:"-"`
 }
 
 // String is not required by pop and may be deleted
