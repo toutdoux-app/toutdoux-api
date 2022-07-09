@@ -311,8 +311,8 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 	// 	return c.Render(http.StatusInternalServerError, r.JSON(response))
 	// }
 
-	var tdList models.TodoEntry
-	err = tx.EagerPreload().Find(&tdList, todoListEntry.ID)
+	var tdListEntry models.TodoEntry
+	err = tx.Eager().Find(&tdListEntry, todoListEntry.ID)
 	if err != nil {
 		c.Logger().WithFields(map[string]interface{}{
 			"error":      err,
@@ -326,5 +326,5 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 		return c.Render(http.StatusInternalServerError, r.JSON(response))
 	}
 
-	return c.Render(http.StatusOK, r.JSON(tdList))
+	return c.Render(http.StatusOK, r.JSON(tdListEntry))
 }
