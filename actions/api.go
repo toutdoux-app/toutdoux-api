@@ -126,7 +126,7 @@ func APITodoListEntriesList(c buffalo.Context) error {
 	}
 
 	todoEntries := &models.TodoEntries{}
-	err := q.All(todoEntries)
+	err := q.EagerPreload().All(todoEntries)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			response := make(map[string]interface{})
@@ -337,4 +337,33 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 	}
 
 	return c.Render(http.StatusOK, r.JSON(tdListEntry))
+}
+
+func APITodoListEntryGet(c buffalo.Context) error {
+	userID := c.Session().Get("current_user_id").(uuid.UUID)
+	tx := c.Value("tx").(*pop.Connection)
+
+	var todoEntry models.TodoEntry
+	err := tx.EagerPreload().Find(&todoEntry, c.Param("entryID"))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response := make(map[string]interface{})
+			response["success"] = false
+			response["error"] = "no such todo list entry"
+			return c.Render(http.StatusBadRequest, r.JSON(response))
+		}
+
+		c.Logger().WithFields(map[string]interface{}{
+			"error":      err,
+			"request_id": c.Value("request_id"),
+			"user_id":    userID.String(),
+		}).Error("fail to query todo list entries")
+
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = "fail to query todo list entries"
+		return c.Render(http.StatusInternalServerError, r.JSON(response))
+	}
+
+	return c.Render(http.StatusOK, r.JSON(todoEntry))
 }

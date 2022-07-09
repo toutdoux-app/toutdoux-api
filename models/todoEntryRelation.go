@@ -20,8 +20,8 @@ type TodoEntryRelation struct {
 	RelatedToTodoEntry   TodoEntry `belongs_to:"todo_entries" db:"-" json:"-"`
 	RelatedToTodoEntryID uuid.UUID `json:"related_to_todo_entry_id" db:"related_to_todo_entry_id"`
 
-	RelationType   TodoEntryRelationType `belongs_to:"todo_entry_relation_types" db:"-" json:"-"`
-	RelationTypeID uuid.UUID             `db:"relation_type_id" json:"relation_type"`
+	RelationType   TodoEntryRelationType `belongs_to:"todo_entry_relation_types" db:"-" json:"relation_type"`
+	RelationTypeID uuid.UUID             `db:"relation_type_id" json:"-"`
 }
 
 // String is not required by pop and may be deleted
