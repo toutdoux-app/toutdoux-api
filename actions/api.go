@@ -298,18 +298,33 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
 
-	if err := tx.EagerPreload().Find(&models.TodoEntry{}, todoListEntry.ID); err != nil {
+	// if err := tx.EagerPreload().Find(&models.TodoEntry{}, todoListEntry.ID); err != nil {
+	// 	c.Logger().WithFields(map[string]interface{}{
+	// 		"error":      err,
+	// 		"request_id": c.Value("request_id"),
+	// 		"user_id":    userID.String(),
+	// 	}).Error("fail to load todo list entry relations")
+
+	// 	response := make(map[string]interface{})
+	// 	response["success"] = false
+	// 	response["error"] = "fail to load todo list entry relations"
+	// 	return c.Render(http.StatusInternalServerError, r.JSON(response))
+	// }
+
+	var tdList models.TodoEntry
+	err = tx.EagerPreload().Find(&tdList, todoListEntry.ID)
+	if err != nil {
 		c.Logger().WithFields(map[string]interface{}{
 			"error":      err,
 			"request_id": c.Value("request_id"),
 			"user_id":    userID.String(),
-		}).Error("fail to load todo list entry relations")
+		}).Error("fail to load created todo list entry")
 
 		response := make(map[string]interface{})
 		response["success"] = false
-		response["error"] = "fail to load todo list entry relations"
+		response["error"] = "fail to load created todo list entry"
 		return c.Render(http.StatusInternalServerError, r.JSON(response))
 	}
 
-	return c.Render(http.StatusOK, r.JSON(todoListEntry))
+	return c.Render(http.StatusOK, r.JSON(tdList))
 }

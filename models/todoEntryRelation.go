@@ -11,7 +11,7 @@ import (
 
 // TodoEntryRelation is used by pop to map your todo_entry_relations database table to your go code.
 type TodoEntryRelation struct {
-	ID        uuid.UUID `json:"id" db:"id"`
+	ID        uuid.UUID `json:"-" db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 
