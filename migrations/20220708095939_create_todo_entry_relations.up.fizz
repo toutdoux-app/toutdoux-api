@@ -1,5 +1,5 @@
 create_table("todo_entry_relations") {
-	t.Column("id", "uuid", {"primary": true})
+	t.Column("id", "uuid", {})
 	t.Timestamps()
 
 	t.Column("relation_type", "string", {})
@@ -9,4 +9,6 @@ create_table("todo_entry_relations") {
 
 	t.Column("related_to_todo_entry_id", "uuid", {})
 	t.ForeignKey("related_to_todo_entry_id", {"todo_entries": ["id"]}, {"on_delete": "cascade"})
+
+	t.PrimaryKey("todo_entry_id", "related_to_todo_entry_id")
 }
