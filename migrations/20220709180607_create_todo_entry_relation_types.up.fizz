@@ -1,0 +1,7 @@
+create_table("todo_entry_relation_types") {
+	t.Column("id", "uuid", {"primary": true})
+	t.Timestamps()
+
+	t.Column("name", "string", {})
+	t.Column("reverse_name", "string", {})
+}

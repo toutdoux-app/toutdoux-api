@@ -257,9 +257,39 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 
 	var relations models.TodoEntryRelations
 	for _, relation := range request.Relations {
+		// We need to access the relationType ID
+		requestedRelationTypeID, err := uuid.FromString(relation.RelationType)
+		if err != nil {
+			response := make(map[string]interface{})
+			response["success"] = false
+			response["error"] = fmt.Sprintf("invalid relation_type_id %s", relation.RelationType)
+			return c.Render(http.StatusBadRequest, r.JSON(response))
+		}
+
+		found, err := tx.Where("id = ?", requestedRelationTypeID).Exists(&models.TodoEntryRelationType{})
+		if err != nil {
+			c.Logger().WithFields(map[string]interface{}{
+				"error":      err,
+				"request_id": c.Value("request_id"),
+				"user_id":    userID.String(),
+			}).Errorf("fail to lookup todo list entry relation type %s", requestedRelationTypeID.String())
+
+			response := make(map[string]interface{})
+			response["success"] = false
+			response["error"] = "fail to lookup todo list entry relation type"
+			return c.Render(http.StatusInternalServerError, r.JSON(response))
+		}
+
+		if !found {
+			response := make(map[string]interface{})
+			response["success"] = false
+			response["error"] = fmt.Sprintf("no such relation_type_id %s", relation.RelationType)
+			return c.Render(http.StatusBadRequest, r.JSON(response))
+		}
+
 		mRelation := models.TodoEntryRelation{
-			TodoEntryID:  todoListEntry.ID,
-			RelationType: relation.RelationType,
+			TodoEntryID:          todoListEntry.ID,
+			RelatedToTodoEntryID: requestedRelationTypeID,
 		}
 
 		relatedTodoID, err := uuid.FromString(relation.RelatedTodoID)

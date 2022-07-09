@@ -20,7 +20,8 @@ type TodoEntryRelation struct {
 	RelatedToTodoEntry   TodoEntry `belongs_to:"todo_entries" db:"-" json:"-"`
 	RelatedToTodoEntryID uuid.UUID `json:"related_to_todo_entry_id" db:"related_to_todo_entry_id"`
 
-	RelationType string `db:"relation_type" json:"relation_type"`
+	RelationType   TodoEntryRelationType `belongs_to:"todo_entry_relation_types" db:"-" json:"-"`
+	RelationTypeID uuid.UUID             `db:"relation_type_id" json:"relation_type"`
 }
 
 // String is not required by pop and may be deleted
@@ -41,6 +42,8 @@ func (t TodoEntryRelations) String() string {
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (t *TodoEntryRelation) Validate(tx *pop.Connection) (*validate.Errors, error) {
+	// TODO: May be useful to implement a protection against a "relation"
+	// between self and self entry
 	return validate.NewErrors(), nil
 }
 
