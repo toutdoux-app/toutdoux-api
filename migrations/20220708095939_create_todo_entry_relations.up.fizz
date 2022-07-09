@@ -2,13 +2,14 @@ create_table("todo_entry_relations") {
 	t.Column("id", "uuid", {})
 	t.Timestamps()
 
-	t.Column("relation_type", "string", {})
-
 	t.Column("todo_entry_id", "uuid", {})
 	t.ForeignKey("todo_entry_id", {"todo_entries": ["id"]}, {"on_delete": "cascade"})
 
 	t.Column("related_to_todo_entry_id", "uuid", {})
 	t.ForeignKey("related_to_todo_entry_id", {"todo_entries": ["id"]}, {"on_delete": "cascade"})
+
+	t.Column("relation_type_id", "uuid", {})
+	t.ForeignKey("relation_type_id", {"todo_entry_relation_types": ["id"]}, {"on_delete": "cascade"})
 
 	t.PrimaryKey("todo_entry_id", "related_to_todo_entry_id")
 }

@@ -52,6 +52,8 @@ type TodoEntryRelationType struct {
 	// ReverseName=blocking
 	Name        string `json:"name" db:"name"`
 	ReverseName string `json:"reverse_name" db:"reverse_name"`
+
+	TodoEntryRelations TodoEntryRelations `has_many:"todo_entry_relations" json:"-"`
 }
 
 // String is not required by pop and may be deleted

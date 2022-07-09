@@ -49,17 +49,18 @@ CREATE TABLE IF NOT EXISTS "todo_entry_relations" (
 "id" char(36) NOT NULL,
 "created_at" DATETIME NOT NULL,
 "updated_at" DATETIME NOT NULL,
-"relation_type" TEXT NOT NULL,
 "todo_entry_id" char(36) NOT NULL,
 "related_to_todo_entry_id" char(36) NOT NULL,
+"relation_type_id" char(36) NOT NULL,
 FOREIGN KEY (todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
 FOREIGN KEY (related_to_todo_entry_id) REFERENCES todo_entries (id) ON DELETE cascade,
+FOREIGN KEY (relation_type_id) REFERENCES todo_entry_relation_types (id) ON DELETE cascade,
 PRIMARY KEY("todo_entry_id", "related_to_todo_entry_id")
 );
 CREATE TABLE IF NOT EXISTS "todo_entry_relation_types" (
 "id" TEXT PRIMARY KEY,
-"name" TEXT NOT NULL,
-"reverse_name" TEXT NOT NULL,
 "created_at" DATETIME NOT NULL,
-"updated_at" DATETIME NOT NULL
+"updated_at" DATETIME NOT NULL,
+"name" TEXT NOT NULL,
+"reverse_name" TEXT NOT NULL
 );
