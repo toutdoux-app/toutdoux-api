@@ -138,10 +138,16 @@ func APITodoListEntriesList(c buffalo.Context) error {
 	return c.Render(http.StatusOK, r.JSON(todoEntries))
 }
 
+type APITodoListEntriesCreateRelatedTodoRequest struct {
+	RelatedTodoID string `json:"related_todo"`
+	RelationType  string `json:"relation_type"`
+}
+
 type APITodoListEntriesCreateRequest struct {
-	Priority int    `form:"priority"`
-	Title    string `form:"title"`
-	Labels   string `form:"labels"`
+	Priority  int                                          `json:"priority"`
+	Title     string                                       `json:"title"`
+	Labels    []string                                     `json:"labels"`
+	Relations []APITodoListEntriesCreateRelatedTodoRequest `json:"relations"`
 }
 
 func (a APITodoListEntriesCreateRequest) Validate() error {
@@ -157,8 +163,7 @@ func (a APITodoListEntriesCreateRequest) Validate() error {
 }
 
 func (a APITodoListEntriesCreateRequest) GetLabels() []string {
-	labels := strings.Split(strings.TrimSpace(a.Labels), ",")
-	return pie.Unique(labels)
+	return pie.Unique(a.Labels)
 }
 
 func APITodoListEntriesCreate(c buffalo.Context) error {
@@ -166,7 +171,7 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 	if err := c.Bind(&request); err != nil {
 		response := make(map[string]interface{})
 		response["success"] = false
-		response["error"] = "fail to process arguments"
+		response["error"] = fmt.Sprintf("fail to process arguments: %s", err)
 		return c.Render(http.StatusBadRequest, r.JSON(response))
 	}
 
@@ -246,6 +251,55 @@ func APITodoListEntriesCreate(c buffalo.Context) error {
 		response["success"] = false
 		response["error"] = "fail to create todo list entry"
 		return c.Render(http.StatusInternalServerError, r.JSON(response))
+	}
+
+	// now that the TodoEntry is created, we have access to the generated ID
+
+	var relations models.TodoEntryRelations
+	for _, relation := range request.Relations {
+		mRelation := models.TodoEntryRelation{
+			TodoEntryID:  todoListEntry.ID,
+			RelationType: relation.RelationType,
+		}
+
+		relatedTodoID, err := uuid.FromString(relation.RelatedTodoID)
+		if err != nil {
+			response := make(map[string]interface{})
+			response["success"] = false
+			response["error"] = fmt.Sprintf("invalid related_todo_id %s", relation.RelatedTodoID)
+			return c.Render(http.StatusBadRequest, r.JSON(response))
+		}
+
+		mRelation.RelatedToTodoEntryID = relatedTodoID
+
+		relations = append(relations, mRelation)
+	}
+
+	vErr, err := tx.ValidateAndCreate(relations)
+	if err != nil {
+		c.Logger().WithFields(map[string]interface{}{
+			"error":      err,
+			"request_id": c.Value("request_id"),
+			"user_id":    userID.String(),
+		}).Error("fail to create todo list entry relations")
+
+		response := make(map[string]interface{})
+		response["success"] = false
+		response["error"] = "fail to create todo list entry relations"
+		return c.Render(http.StatusInternalServerError, r.JSON(response))
+	}
+
+	if len(vErr.Errors) > 0 {
+		response := make(map[string]interface{})
+		response["error"] = "invalid values when creating todo entry relations"
+		response["detail"] = vErr.Errors
+		response["success"] = false
+
+		return c.Render(http.StatusBadRequest, r.JSON(response))
+	}
+
+	if err := tx.EagerPreload().Find(todoListEntry, todoListEntry.ID); err != nil {
+		return c.Render(http.StatusInternalServerError, r.String(err.Error()))
 	}
 
 	return c.Render(http.StatusOK, r.JSON(todoListEntry))

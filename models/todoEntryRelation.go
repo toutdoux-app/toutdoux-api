@@ -11,13 +11,14 @@ import (
 
 // TodoEntryRelation is used by pop to map your todo_entry_relations database table to your go code.
 type TodoEntryRelation struct {
+	ID        uuid.UUID `json:"id" db:"id"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 
 	TodoEntry            TodoEntry `belongs_to:"todo_entry"`
-	TodoEntryID          uuid.UUID `json:"todo_entry_id"`
+	TodoEntryID          uuid.UUID `json:"todo_entry_id" db:"todo_entry_id"`
 	RelatedToTodoEntry   TodoEntry `belongs_to:"todo_entry"`
-	RelatedToTodoEntryID uuid.UUID `json:"related_to_todo_entry_id"`
+	RelatedToTodoEntryID uuid.UUID `json:"related_to_todo_entry_id" db:"related_to_todo_entry_id"`
 
 	RelationType string `db:"relation_type" json:"relation_type"`
 }
