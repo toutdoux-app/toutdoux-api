@@ -27,7 +27,6 @@ type TodoEntry struct {
 	Done     bool           `json:"done" db:"done"`
 	Labels   TodoListLabels `many_to_many:"todo_entry_labels" db:"-" json:"labels,omitempty"`
 
-	//Relations TodoEntryRelations `many_to_many:"todo_entry_relations" fk_id:"todo_entry_id" primary_id:"TodoEntryID" json:"relations,omitempty"`
 	Relations TodoEntryRelations `many_to_many:"todo_entry_relations" fk_id:"id" db:"-" json:"relations,omitempty"`
 }
 
